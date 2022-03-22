@@ -38,7 +38,7 @@ param(
 )
 
 # Need the current working directory
-$scriptDir = $PSScriptRoot
+$scriptDir = (Get-Location).Path
 
 # Static variables
 $tflintConfigFile = '.tflint.hcl'
