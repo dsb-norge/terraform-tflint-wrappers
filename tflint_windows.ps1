@@ -44,6 +44,7 @@ $scriptDir = (Get-Location).Path
 $tflintConfigFile = '.tflint.hcl'
 $tflintInstallDir = '.tflint'
 $tflintLatestReleaseUrl = 'https://github.com/terraform-linters/tflint/releases/latest'
+$tflintDefaultConfigUrl = 'https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/default.tflint.hcl'
 
 # Folder and file locations
 $tflintInstallDirFullPath = Join-Path -Path $scriptDir -ChildPath $tflintInstallDir
@@ -79,11 +80,7 @@ if ( $Remove )
     exit 0
 }
 
-# Abort if config file is missing
-if ( -not (Invoke-Command $_tflintConfigExists) )
-{
-    throw "Missing TFLint config file at '$tflintConfigFileFullPath'!"
-}
+# Abort if terraform has not been initialized
 if ( -not (Invoke-Command $_terraformDirExists) )
 {
     throw "Missing '.terraform' directory. Please perform 'terraform init' first."
@@ -134,6 +131,29 @@ if ( -not (Invoke-Command $_tflintBinExists) -or $Force )
             Add-Content -Path $gitignoreFullPath -Value "`n# Local tflint directories`n**/.tflint/*"
         }
     }
+}
+
+# Install default TFLint config if config is missing
+if ( -not (Invoke-Command $_tflintConfigExists) )
+{
+    Write-Host "`nMissing TFLint config fetching default config ..."
+    Write-Host "Source: $tflintDefaultConfigUrl"
+    Write-Host "Target: $tflintConfigFileFullPath"
+    try
+    {
+        $ProgressPreference = 'SilentlyContinue'
+        $null = Invoke-WebRequest -Uri $tflintDefaultConfigUrl -OutFile $tflintConfigFileFullPath -UseBasicParsing
+    }
+    catch
+    {
+        throw ("Failed to save TFLint default configuration as '$tflintConfigFileFullPath' from '$tflintDefaultConfigUrl'!`nException was:`n{0}" -f $_.Exception)
+    }
+}
+
+# Abort if config file is still missing
+if ( -not (Invoke-Command $_tflintConfigExists) )
+{
+    throw "Missing TFLint config file at '$tflintConfigFileFullPath'!"
 }
 
 # Install TFLint plugins, mute stdout

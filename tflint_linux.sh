@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
         UNINSTALL="1"
         shift
         ;;
-    *)        # unknown option
+    *) # unknown option
         shift
         ;;
     esac
@@ -41,6 +41,7 @@ done
 TFLINT_DIR='./.tflint'
 TFLINT_BIN="${TFLINT_DIR}/tflint"
 TFLINT_CFG='./.tflint.hcl'
+TFLINT_DEFAULT_CFG_URL='https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/default.tflint.hcl'
 TF_DIR='./.terraform'
 TF_MODULES_FILE="${TF_DIR}/modules/modules.json"
 GITIGNORE_FILE='./.gitignore'
@@ -76,16 +77,12 @@ if [ ! -d "${TF_DIR}" ]; then
     echo -e '\nMissing ".terraform" directory. Please perform "terraform init" first.'
     exit 255
 fi
-if [ ! -f "${TFLINT_CFG}" ]; then
-    echo -e "\nMissing TFLint config file at '${TFLINT_CFG}'!"
-    exit 255
-fi
 
 # Install TFLint if missing
 if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ]; then
     echo -e '\nInstalling TFLint ...'
-    curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest \
-    | grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip
+    curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
+        grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip
     unzip -o ./tflint.zip -d "${TFLINT_DIR}"
     rm tflint.zip
 
@@ -97,6 +94,20 @@ if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ]; then
             echo -e '\n# Local tflint directories\n**/.tflint/*' >>"${GITIGNORE_FILE}"
         fi
     fi
+fi
+
+# Install default TFLint config if config is missing
+if [ ! -f "${TFLINT_CFG}" ]; then
+    echo -e "\nMissing TFLint config fetching default config ..."
+    echo -e "Source: ${TFLINT_DEFAULT_CFG_URL}"
+    echo -e "Target: ${TFLINT_CFG}"
+    curl -s "${TFLINT_DEFAULT_CFG_URL}" -o "${TFLINT_CFG}"
+fi
+
+# Abort if config file is still missing
+if [ ! -f "${TFLINT_CFG}" ]; then
+    echo -e "\nMissing TFLint config file at '${TFLINT_CFG}'!"
+    exit 255
 fi
 
 # Install TFLint plugins
