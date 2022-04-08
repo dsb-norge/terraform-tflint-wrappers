@@ -180,7 +180,13 @@ if ( (Invoke-Command $_terraformModulesJsonExists) )
 # Look for *.tfvars files
 $tfvarsFiles = Get-ChildItem -Path $scriptDir -Filter '*.tfvars' -File
 $lintingResults = @{}
-if ( $tfvarsFiles )
+if ( -not $tfvarsFiles )
+{
+    # $lintingResults will be hashtable with one key
+    Write-Debug "No .tfvars files found in $scriptDir"
+    $lintingResults += @{ '' = @{} }
+}
+else
 {
     # $lintingResults will be hashtable with each tfvars file as key
     $tfvarsFiles | ForEach-Object { $lintingResults += @{ $_.Name = @{} } }
@@ -195,7 +201,7 @@ foreach ($lintDir in $directoriesToLint)
     {
         # Invoke without '/var-file'
         & "$tflintBinPath" /config:"$tflintConfigFile" "$lintDir" 2>&1
-        $lintingResults += @{ '' = @{ $lintDir = $LASTEXITCODE } }
+        $lintingResults[''] += @{ $lintDir = $LASTEXITCODE }
     }
     else # tfvars exists, iterate over them
     {
