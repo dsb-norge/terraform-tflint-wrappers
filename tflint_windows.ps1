@@ -174,11 +174,11 @@ if ( (Invoke-Command $_terraformModulesJsonExists) )
                 $_
             }
         }
-    )
+    ) | Sort-Object
 }
 
 # Look for *.tfvars files
-$tfvarsFiles = Get-ChildItem -Path $scriptDir -Filter '*.tfvars' -File
+$tfvarsFiles = Get-ChildItem -Path $scriptDir -Filter '*.tfvars' -File | Sort-Object
 $lintingResults = @{}
 if ( -not $tfvarsFiles )
 {
@@ -215,9 +215,9 @@ foreach ($lintDir in $directoriesToLint)
 
 # Summarize results of linting
 Write-Host "`n`nTFLint summary:`n$separatorShort"
-foreach ($varFile in $lintingResults.Keys)
+foreach ($varFile in ($lintingResults.Keys | Sort-Object) )
 {
-    foreach ($lintDir in $lintingResults."$varFile".Keys)
+    foreach ($lintDir in ($lintingResults."$varFile".Keys | Sort-Object) )
     {
         Write-Host $(if ($lintingResults."$varFile"."$lintDir" -ne 0)
             {
