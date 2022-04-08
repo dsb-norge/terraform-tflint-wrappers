@@ -11,12 +11,12 @@ The intention of the scripts in this repo is to provide a comaptible and safe wa
 This is how to call the linux wrapper script from bash without having to store a copy locally:
 ```bash
 # Without arguments
-curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_linux.sh \
-| bash -s --
+curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_linux.sh |
+  bash -s --
 
 # With arguments
-curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_linux.sh \
-| bash -s -- --uninstall
+curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_linux.sh |
+  bash -s -- --uninstall
 ```
 
 ### Powershell
@@ -28,7 +28,7 @@ Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw
 # With arguments
 Invoke-Command `
   -ScriptBlock ([scriptblock]::Create(((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_windows.ps1')) -join "`n")) `
-  -ArgumentList $false,$true # Force = false, Remove = true
+  -ArgumentList $false,$true,$false # Force = false, Remove = true, ExitWithCode = false
 ```
 
 ## Development
@@ -52,5 +52,5 @@ Invoke-Expression ([String]::Join("`n",(Get-Content '.\tflint_windows.ps1')))
 # With arguments
 Invoke-Command `
   -ScriptBlock ([scriptblock]::Create((Get-Content '.\tflint_windows.ps1') -join "`n")) `
-  -ArgumentList $false,$true # Force = false, Remove = true
+  -ArgumentList $false,$true,$false # Force = false, Remove = true, ExitWithCode = false
 ```

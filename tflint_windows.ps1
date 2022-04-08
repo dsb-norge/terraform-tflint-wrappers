@@ -7,7 +7,8 @@
 #   - Loops over all *.tfvars (if any)
 #   - Loops through all terraform module directories (if any)
 #   - Prints summary
-#   - Exit code is sum of all exit codes for all permutations, 0 when there are no issues
+#   - Returns the sum of all exit codes for all permutations, 0 when there are no issues
+#   - The flag -ExitWithCode can be used to terminate with exit code instead of returning it
 #
 # If TFLint is missing (or -Force is speciified) the latest version of TFLint will be downloaded and installed to '.\.tflint'.
 #
@@ -19,8 +20,10 @@
 # None. Pipelining is not supported.
 #
 # .OUTPUTS
-# No output except what is written to the host.
-# Exit code is sum of all exit codes for all permutations, 0 when there are no issues and 255 when prerequs ar not met.
+# Outputs:
+#   - Detailed results are written to the host.
+#   - The sum of all exit codes for all permutations, 0 when there are no issues.
+#     If the flag -ExitWithCode is specified, the powershell process will terminate with exit code according to the above and no value will be returned.
 #
 # .EXAMPLE
 #     .\tflint_windows.ps1 -Force
@@ -34,7 +37,9 @@ param(
     [switch]$Force,
     # Support --remove for removing .tflint directory
     [alias('r', 'uninstall')]
-    [switch]$Remove
+    [switch]$Remove,
+    # Support flag for exiting current powershell process with exitcode, default is not to exit
+    [switch]$ExitWithCode
 )
 
 # Need the current working directory
@@ -77,7 +82,17 @@ if ( $Remove )
         Remove-Item -Force -Recurse -Path $tflintInstallDirFullPath
     }
     Write-Host 'Done.'
+    if ( $ExitWithCode )
+    {
+        Write-Debug "Exiting with code 0"
     exit 0
+    }
+    else
+    {
+        Write-Debug "Stoping script execution not calling exit, returning code: 0"
+        0
+        break
+    }
 }
 
 # Abort if terraform has not been initialized
@@ -125,10 +140,15 @@ if ( -not (Invoke-Command $_tflintBinExists) -or $Force )
     # Add install dir to .gitignore when needed
     if ( Invoke-Command $_gitignoreExists )
     {
+        Write-Debug ".gitignore already exists, checking for '**/.tflint/*' ..."
         if ( -not (Select-String -Path $gitignoreFullPath -Pattern '\*\*/\.tflint/\*' ) )
         {
             Write-Host "`nUpdate .gitignore: Exclude **/.tflint/* ..."
             Add-Content -Path $gitignoreFullPath -Value "`n# Local tflint directories`n**/.tflint/*"
+        }
+        else
+        {
+            Write-Debug ".gitignore already contains **/.tflint/*, skipping update."
         }
     }
 }
@@ -156,10 +176,10 @@ if ( -not (Invoke-Command $_tflintConfigExists) )
     throw "Missing TFLint config file at '$tflintConfigFileFullPath'!"
 }
 
-# Install TFLint plugins, mute stdout
+Write-Debug "Install TFLint plugins, mute stdout"
 & "$tflintBinPath" /init 1>$null
 
-# Look for terraform module directories
+Write-Debug "Look for terraform module directories"
 #   Note: modules.json includes the root directory
 $directoriesToLint = [string[]]@( '.' )
 if ( (Invoke-Command $_terraformModulesJsonExists) )
@@ -171,6 +191,7 @@ if ( (Invoke-Command $_terraformModulesJsonExists) )
             # If directory actually exists queue it for linting
             if ( Test-Path -PathType Container -Path $fullModulePath )
             {
+                Write-Debug "Directory to be linted: $_"
                 $_
             }
         }
@@ -189,6 +210,7 @@ if ( -not $tfvarsFiles )
 else
 {
     # $lintingResults will be hashtable with each tfvars file as key
+    Write-Debug "Found $($tfvarsFiles.count) .tfvars files in $scriptDir"
     $tfvarsFiles | ForEach-Object { $lintingResults += @{ $_.Name = @{} } }
 }
 
@@ -206,6 +228,7 @@ foreach ($lintDir in $directoriesToLint)
     else # tfvars exists, iterate over them
     {
         $tfvarsFiles | ForEach-Object {
+            Write-Debug "Linting with tfvars: $($_.Name)"
             # Invoke with '/var-file'
             & "$tflintBinPath" /config:"$tflintConfigFile" /var-file:"$($_.Name)" "$lintDir"
             $lintingResults[$($_.Name)] += @{ $lintDir = $LASTEXITCODE }
@@ -237,4 +260,13 @@ if ( $exitcodeSum -ne 0 )
 {
     Write-Error 'FAILURE: Linting with TFLint failed for one or more configurations'
 }
+if ( $ExitWithCode )
+{
+    Write-Debug "Exiting with code: $exitcodeSum"
 exit $exitcodeSum
+}
+else
+{
+    Write-Debug "Not calling exit, returning code: $exitcodeSum"
+    $exitcodeSum
+}
