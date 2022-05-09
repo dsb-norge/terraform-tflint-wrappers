@@ -219,10 +219,12 @@ foreach ($lintDir in $directoriesToLint)
 {
     Write-Host "`nLinting in: $lintDir`n$separatorShort"
 
+    Push-Location $lintDir
+
     if ( -not $tfvarsFiles ) # no tfvars exists
     {
         # Invoke without '/var-file'
-        & "$tflintBinPath" /config:"$tflintConfigFile" "$lintDir" 2>&1
+        & "$tflintBinPath" /config:"$tflintConfigFile" . 2>&1
         $lintingResults[''] += @{ $lintDir = $LASTEXITCODE }
     }
     else # tfvars exists, iterate over them
@@ -230,10 +232,12 @@ foreach ($lintDir in $directoriesToLint)
         $tfvarsFiles | ForEach-Object {
             Write-Debug "Linting with tfvars: $($_.Name)"
             # Invoke with '/var-file'
-            & "$tflintBinPath" /config:"$tflintConfigFile" /var-file:"$($_.Name)" "$lintDir"
+            & "$tflintBinPath" /config:"$tflintConfigFile" /var-file:"$($_.FullName)" .
             $lintingResults[$($_.Name)] += @{ $lintDir = $LASTEXITCODE }
         }
     }
+
+    Pop-Location
 }
 
 # Summarize results of linting
