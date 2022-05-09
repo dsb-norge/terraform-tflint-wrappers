@@ -52,5 +52,5 @@ Invoke-Expression ([String]::Join("`n",(Get-Content '.\tflint_windows.ps1')))
 # With arguments
 Invoke-Command `
   -ScriptBlock ([scriptblock]::Create((Get-Content '.\tflint_windows.ps1') -join "`n")) `
-  -ArgumentList $false,$true,$false # Force = false, Remove = true, ExitWithCode = false
+  -ArgumentList $true,$false,$false # Force = true, Remove = true, ExitWithCode = false
 ```

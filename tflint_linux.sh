@@ -37,10 +37,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Helper functions
+get_abs_file_path() {
+    # $1 : relative filename
+    echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+}
+
 # Static variables
-TFLINT_DIR='./.tflint'
+TFLINT_DIR=$(get_abs_file_path './.tflint')
 TFLINT_BIN="${TFLINT_DIR}/tflint"
-TFLINT_CFG='./.tflint.hcl'
+TFLINT_CFG=$(get_abs_file_path './.tflint.hcl')
 TFLINT_DEFAULT_CFG_URL='https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/default.tflint.hcl'
 TF_DIR='./.terraform'
 TF_MODULES_FILE="${TF_DIR}/modules/modules.json"
@@ -117,7 +123,7 @@ ${TFLINT_BIN} --init 1>/dev/null
 VAR_FILE_PREFIX=' --var-file='
 VAR_FILES_ARG=('')
 if ls ./*.tfvars &>/dev/null; then
-    readarray -t VAR_FILES_ARG < <(for VAR_FILE in ./*.tfvars; do echo "$VAR_FILE_PREFIX${VAR_FILE}"; done)
+    readarray -t VAR_FILES_ARG < <(for VAR_FILE in ./*.tfvars; do echo "${VAR_FILE_PREFIX}$(get_abs_file_path ${VAR_FILE})"; done)
 fi
 
 # Look for terraform module directories
@@ -139,11 +145,13 @@ declare -A TFLINT_RESULTS
 for LINT_DIR in "${LINT_IN_DIRS[@]}"; do
     echo -e "\nLinting in: $LINT_DIR"
     echo "${SEP_SHORT}"
+    pushd "$LINT_DIR" >/dev/null || (echo -e "\nERROR: Failed to cd into directory '$LINT_DIR'" && exit 255)
     # Loop over all *.tfvars (if any)
     for VAR_ARG in "${VAR_FILES_ARG[@]}"; do
-        ${TFLINT_BIN} --config=${TFLINT_CFG} ${VAR_ARG} "./${LINT_DIR}"
+        ${TFLINT_BIN} --config=${TFLINT_CFG} ${VAR_ARG} .
         TFLINT_RESULTS[${VAR_ARG}, "./${LINT_DIR}"]=$?
     done
+    popd >/dev/null || (echo -e '\nERROR: Failed to cd back to working directory after linting!' && exit 255)
 done
 
 echo -e '\n\nTFLint summary:'
