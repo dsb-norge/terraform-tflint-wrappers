@@ -143,15 +143,13 @@ fi
 # Loop over all directories
 declare -A TFLINT_RESULTS
 for LINT_DIR in "${LINT_IN_DIRS[@]}"; do
-    echo -e "\nLinting in: $LINT_DIR"
+    echo -e "\nLinting in: ${LINT_DIR}"
     echo "${SEP_SHORT}"
-    pushd "$LINT_DIR" >/dev/null || (echo -e "\nERROR: Failed to cd into directory '$LINT_DIR'" && exit 255)
     # Loop over all *.tfvars (if any)
     for VAR_ARG in "${VAR_FILES_ARG[@]}"; do
-        ${TFLINT_BIN} --config=${TFLINT_CFG} ${VAR_ARG} .
+        ${TFLINT_BIN} --config=${TFLINT_CFG} ${VAR_ARG} --chdir="${LINT_DIR}"
         TFLINT_RESULTS[${VAR_ARG}, "./${LINT_DIR}"]=$?
     done
-    popd >/dev/null || (echo -e '\nERROR: Failed to cd back to working directory after linting!' && exit 255)
 done
 
 echo -e '\n\nTFLint summary:'
