@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 # Perform linting of terraform code using TFLint.
 #   - Loops over all *.tfvars (if any).
 #   - Loops through all terraform module directories (if any).
@@ -16,6 +18,8 @@
 # Usage:
 #   Install and run linting in current dir  : ./tflint.sh
 #   Force install/upgrade tflint            : ./tflint.sh --force-install
+#   Do not check for new tflint version     : ./tflint.sh --skip-latest-check
+#   Uninstall tflint (automatic)            : ./tflint.sh --remove
 #   Uninstall tflint (manual)               :  sudo rm /usr/local/bin/tflint
 
 while [[ $# -gt 0 ]]; do
@@ -29,6 +33,11 @@ while [[ $# -gt 0 ]]; do
     # Support --remove for removing .tflint directory
     -r | --remove | --uninstall)
         UNINSTALL="1"
+        shift
+        ;;
+    # Support --skip-latest-check for disabling checking if currentliy installed tflint is latest
+    -s | --skip-latest-check)
+        SKIP_CHECK="1"
         shift
         ;;
     *) # unknown option
@@ -46,6 +55,7 @@ get_abs_file_path() {
 # Static variables
 TFLINT_DIR=$(get_abs_file_path './.tflint')
 TFLINT_BIN="${TFLINT_DIR}/tflint"
+TFLINT_ZIP_SHA="${TFLINT_DIR}/tflint_zip.sha"
 TFLINT_CFG=$(get_abs_file_path './.tflint.hcl')
 TFLINT_DEFAULT_CFG_URL='https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/default.tflint.hcl'
 TF_DIR='./.terraform'
@@ -85,12 +95,27 @@ if [ ! -d "${TF_DIR}" ]; then
 fi
 
 # Install TFLint if missing
-if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ]; then
-    echo -e '\nInstalling TFLint ...'
-    curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
-        grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip
-    unzip -o ./tflint.zip -d "${TFLINT_DIR}"
-    rm tflint.zip
+RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
+RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
+if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
+    LATEST_SHA_STRING=$(
+        curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
+            grep -m 1 -o -E "https://.+?checksums.txt")" |
+            grep -m 1 -o -E "^([[:alnum:]])+\s+${RELEASE_ZIP_NAME}"
+    )
+    INSTALLED_SHA_STRING=
+    if [ -f "${TFLINT_ZIP_SHA}" ]; then
+        INSTALLED_SHA_STRING=$(cat "${TFLINT_ZIP_SHA}")
+    fi
+fi
+if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ] || [ ! "${INSTALLED_SHA_STRING}" = "${LATEST_SHA_STRING}" ]; then
+    echo -e '\nInstalling TFLint in ...'
+    mkdir -p "${TFLINT_DIR}"
+    curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
+        grep -o -E "https://.+?${RELEASE_ZIP_NAME}")" -o "${RELEASE_ZIP_PATH}"
+    unzip -o "${RELEASE_ZIP_PATH}" -d "${TFLINT_DIR}"
+    echo "${LATEST_SHA_STRING}" >"${TFLINT_ZIP_SHA}"
+    rm "${RELEASE_ZIP_PATH}"
 
     # Add install dir to .gitignore when needed
     if [ -f "${GITIGNORE_FILE}" ]; then
