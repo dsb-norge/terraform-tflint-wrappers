@@ -109,7 +109,7 @@ if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
     fi
 fi
 if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ] || [ ! "${INSTALLED_SHA_STRING}" = "${LATEST_SHA_STRING}" ]; then
-    echo -e '\nInstalling TFLint in ...'
+    echo -e '\nInstalling TFLint ...'
     mkdir -p "${TFLINT_DIR}"
     curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
         grep -o -E "https://.+?${RELEASE_ZIP_NAME}")" -o "${RELEASE_ZIP_PATH}"
@@ -166,6 +166,7 @@ else
 fi
 
 # Loop over all directories
+set +e
 declare -A TFLINT_RESULTS
 for LINT_DIR in "${LINT_IN_DIRS[@]}"; do
     echo -e "\nLinting in: ${LINT_DIR}"
