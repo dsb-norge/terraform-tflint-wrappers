@@ -166,7 +166,7 @@ else
 fi
 
 # Loop over all directories
-set +e
+set +eo pipefail
 declare -A TFLINT_RESULTS
 for LINT_DIR in "${LINT_IN_DIRS[@]}"; do
     echo -e "\nLinting in: ${LINT_DIR}"
