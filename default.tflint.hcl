@@ -1,7 +1,7 @@
 # Configuring TFLint
 #   https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/config.md
 config {
-  module = true
+  call_module_type = "local"
 }
 
 # TFLint Ruleset for terraform-provider-azurerm
