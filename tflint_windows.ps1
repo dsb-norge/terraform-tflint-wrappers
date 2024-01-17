@@ -186,6 +186,7 @@ if ( (Invoke-Command $_terraformModulesJsonExists) )
 {
     $directoriesToLint = [string[]]@(
         (Get-Content $terraformModulesJson | ConvertFrom-Json).Modules.Dir `
+        | Where-Object { $_ -notlike '.terraform*' } `
         | Sort-Object -Unique | ForEach-Object {
             $fullModulePath = Join-Path -Path $scriptDir -ChildPath $_
             # If directory actually exists queue it for linting

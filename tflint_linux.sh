@@ -98,6 +98,7 @@ fi
 RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
 RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
 if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
+    echo -e '\nChecking latest TFLint version ...'
     LATEST_SHA_STRING=$(
         curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
             grep -m 1 -o -E "https://.+?checksums.txt")" |
@@ -109,7 +110,11 @@ if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
     fi
 fi
 if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ] || [ ! "${INSTALLED_SHA_STRING}" = "${LATEST_SHA_STRING}" ]; then
-    echo -e '\nInstalling TFLint ...'
+    if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ]; then
+        echo -e '\nInstalling TFLint ...'
+    elif [ ! "${INSTALLED_SHA_STRING}" = "${LATEST_SHA_STRING}" ]; then
+        echo -e '\nUpgrading TFLint ...'
+    fi
     mkdir -p "${TFLINT_DIR}"
     curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
         grep -o -E "https://.+?${RELEASE_ZIP_NAME}")" -o "${RELEASE_ZIP_PATH}"
@@ -155,7 +160,7 @@ fi
 #   Note: modules.json includes the root directories
 if [ -f "${TF_MODULES_FILE}" ]; then
     LINT_IN_DIRS=()
-    for MODULE_DIR in $(jq -r '[ .Modules[].Dir ] | unique | sort | .[]' "${TF_MODULES_FILE}"); do
+    for MODULE_DIR in $(jq -r '[ .Modules[].Dir | select( startswith(".terraform") | not) ] | unique | sort | .[]' "${TF_MODULES_FILE}"); do
         # If directory actually exists queue it for linting
         if [ -d "${MODULE_DIR}" ]; then
             LINT_IN_DIRS+=("${MODULE_DIR}")
