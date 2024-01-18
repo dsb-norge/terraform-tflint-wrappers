@@ -37,7 +37,7 @@ plugin "azurerm" {
 # plugin: TFLint Ruleset for terraform-provider-basic-ext - https://github.com/Azure/tflint-ruleset-basic-ext/tree/master
 plugin "basic-ext" {
   enabled     = true
-  version     = "0.5.0"
+  version     = "0.5.1"
   source      = "github.com/Azure/tflint-ruleset-basic-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
