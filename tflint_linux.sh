@@ -96,6 +96,12 @@ fi
 
 # Install TFLint if missing
 RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
+#Check workstation arch and choose the right release
+if [[ $(uname -m) == "arm64" ]]; then
+    RELEASE_ZIP_NAME="tflint_darwin_arm64.zip"
+else
+    RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
+fi
 RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
 if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
     echo -e '\nChecking latest TFLint version ...'
