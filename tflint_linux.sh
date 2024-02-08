@@ -95,7 +95,6 @@ if [ ! -d "${TF_DIR}" ]; then
 fi
 
 # Install TFLint if missing
-RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
 #Check workstation arch and choose the right release
 if [[ $(uname -m) == "arm64" ]]; then
     RELEASE_ZIP_NAME="tflint_darwin_arm64.zip"
