@@ -101,7 +101,7 @@ rule "terraform_output_separate" { enabled = true }          # Checks whether ou
 rule "terraform_variable_order" { enabled = true }           # Recommend order for variable blocks. First default value variables, then the rest. Each group sorted in alphabetic order
 rule "terraform_output_order" { enabled = true }             # Recommend order for output blocks. Sorted in alphabetic order
 rule "terraform_resource_data_arg_layout" { enabled = true } # Recommend argument order within resource/data blocks. Arguments are grouped into: head-meta (for-each/count, provider), attr, block, tail-meta (lifecycle, depends_on)
-# rule "terraform_locals_order" { enabled = true }           # We use logical ordering of locals, not alphabetic order
+rule "terraform_locals_order" { enabled = false }            # We use logical ordering of locals, not alphabetic order
 
 
 # ---------------------------------------------------------------------------------------------------------------------
