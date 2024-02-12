@@ -37,7 +37,7 @@ plugin "azurerm" {
 # plugin: TFLint Ruleset for terraform-provider-basic-ext - https://github.com/Azure/tflint-ruleset-basic-ext/tree/master
 plugin "basic-ext" {
   enabled     = true
-  version     = "0.5.1"
+  version     = "0.6.0"
   source      = "github.com/Azure/tflint-ruleset-basic-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -108,7 +108,7 @@ rule "terraform_resource_data_arg_layout" { enabled = true } # Recommend argumen
 # plugin: TFLint Ruleset for terraform-provider-azurerm-ext - https://github.com/Azure/tflint-ruleset-azurerm-ext/tree/master
 plugin "azurerm-ext" {
   enabled     = true
-  version     = "0.5.1"
+  version     = "0.6.0"
   source      = "github.com/Azure/tflint-ruleset-azurerm-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
