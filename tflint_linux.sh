@@ -102,7 +102,7 @@ else
     RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
 fi
 RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
-if [ ! "${SKIP_CHECK}" == "1" ] || [ ! "${FORCE_INSTALL}" == "1" ]; then
+if [ ! "${SKIP_CHECK}" == "1" ] && [ ! "${FORCE_INSTALL}" == "1" ]; then
     echo -e '\nChecking latest TFLint version ...'
     LATEST_SHA_STRING=$(
         curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
