@@ -94,6 +94,15 @@ if [ ! -d "${TF_DIR}" ]; then
     exit 255
 fi
 
+# Check if github cli is installed and authenticated
+USE_GH=0
+if command -v gh --version &>/dev/null; then
+    if gh auth status &>/dev/null; then
+        echo -e 'Calls to github API will be made using the cli.'
+        USE_GH=1
+    fi
+fi
+
 # Install TFLint if missing
 #Check workstation arch and choose the right release
 if [[ $(uname -m) == "arm64" ]]; then
@@ -104,11 +113,19 @@ fi
 RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
 if [ ! "${SKIP_CHECK}" == "1" ] && [ ! "${FORCE_INSTALL}" == "1" ]; then
     echo -e '\nChecking latest TFLint version ...'
-    LATEST_SHA_STRING=$(
-        curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
-            grep -m 1 -o -E "https://.+?checksums.txt")" |
-            grep -m 1 -o -E "^([[:alnum:]])+\s+${RELEASE_ZIP_NAME}"
-    )
+    if [ "${USE_GH}" == "1" ]; then
+        LATEST_SHA_STRING=$(
+            gh release download --repo terraform-linters/tflint --pattern 'checksums.txt' --output - |
+                grep --max-count=1 --only-matching --extended-regexp "^([[:alnum:]])+\s+${RELEASE_ZIP_NAME}"
+        )
+    else
+        LATEST_CHECKSUM_URL="$(curl --location --silent https://api.github.com/repos/terraform-linters/tflint/releases/latest |
+            grep --max-count=1 --only-matching --extended-regexp "https://.+?checksums.txt")"
+        LATEST_SHA_STRING=$(
+            curl --location --silent "${LATEST_CHECKSUM_URL}" |
+                grep --max-count=1 --only-matching --extended-regexp "^([[:alnum:]])+\s+${RELEASE_ZIP_NAME}"
+        )
+    fi
     INSTALLED_SHA_STRING=
     if [ -f "${TFLINT_ZIP_SHA}" ]; then
         INSTALLED_SHA_STRING=$(cat "${TFLINT_ZIP_SHA}")
@@ -121,15 +138,20 @@ if ! command -v ${TFLINT_BIN} &>/dev/null || [ "${FORCE_INSTALL}" == "1" ] || [ 
         echo -e '\nUpgrading TFLint ...'
     fi
     mkdir -p "${TFLINT_DIR}"
-    curl -Ls "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest |
-        grep -o -E "https://.+?${RELEASE_ZIP_NAME}")" -o "${RELEASE_ZIP_PATH}"
+    if [ "${USE_GH}" == "1" ]; then
+        gh release download --repo terraform-linters/tflint --pattern "${RELEASE_ZIP_NAME}" --output "${RELEASE_ZIP_PATH}" --clobber
+    else
+        LATEST_ZIP_URL=$(curl --location --silent https://api.github.com/repos/terraform-linters/tflint/releases/latest |
+            grep --only-matching --extended-regexp "https://.+?${RELEASE_ZIP_NAME}")
+        curl --location --silent "${LATEST_ZIP_URL}" --output "${RELEASE_ZIP_PATH}"
+    fi
     unzip -o "${RELEASE_ZIP_PATH}" -d "${TFLINT_DIR}"
     echo "${LATEST_SHA_STRING}" >"${TFLINT_ZIP_SHA}"
     rm "${RELEASE_ZIP_PATH}"
 
     # Add install dir to .gitignore when needed
     if [ -f "${GITIGNORE_FILE}" ]; then
-        TFLINT_IS_IN_GITIGNORE_FILE=$(grep -xc '\*\*/\.tflint/\*' "${GITIGNORE_FILE}")
+        TFLINT_IS_IN_GITIGNORE_FILE=$(grep --line-regexp --count '\*\*/\.tflint/\*' "${GITIGNORE_FILE}")
         if [ "$TFLINT_IS_IN_GITIGNORE_FILE" -eq 0 ]; then
             echo -e "\nUpdate .gitignore: Exclude **/.tflint/* ..."
             echo -e '\n# Local tflint directories\n**/.tflint/*' >>"${GITIGNORE_FILE}"
@@ -142,7 +164,7 @@ if [ ! -f "${TFLINT_CFG}" ]; then
     echo -e "\nMissing TFLint config fetching default config ..."
     echo -e "Source: ${TFLINT_DEFAULT_CFG_URL}"
     echo -e "Target: ${TFLINT_CFG}"
-    curl -s "${TFLINT_DEFAULT_CFG_URL}" -o "${TFLINT_CFG}"
+    curl --silent "${TFLINT_DEFAULT_CFG_URL}" -o "${TFLINT_CFG}"
 fi
 
 # Abort if config file is still missing
