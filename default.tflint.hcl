@@ -25,7 +25,7 @@ rule "terraform_required_version" { enabled = false }   # Disallow terraform dec
 # plugin: TFLint Ruleset for terraform-provider-azurerm - https://github.com/terraform-linters/tflint-ruleset-azurerm/tree/master
 plugin "azurerm" {
   enabled = true
-  version = "0.25.1"
+  version = "0.27.0"
   source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
 }
 
@@ -37,7 +37,7 @@ plugin "azurerm" {
 # plugin: TFLint Ruleset for terraform-provider-basic-ext - https://github.com/Azure/tflint-ruleset-basic-ext/tree/master
 plugin "basic-ext" {
   enabled     = true
-  version     = "0.6.0"
+  version     = "0.7.1"
   source      = "github.com/Azure/tflint-ruleset-basic-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
