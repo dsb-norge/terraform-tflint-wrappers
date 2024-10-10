@@ -104,11 +104,18 @@ if command -v gh --version &>/dev/null; then
 fi
 
 # Install TFLint if missing
-#Check workstation arch and choose the right release
+# Check workstation arch and choose the right release
 if [[ $(uname -m) == "arm64" ]]; then
     RELEASE_ZIP_NAME="tflint_darwin_arm64.zip"
-else
+elif [[ $(uname -m) == "aarch64" ]] && [[ $(uname -s) == "Linux" ]]; then
+    RELEASE_ZIP_NAME="tflint_linux_arm64.zip"
+elif [[ $(uname -m) == "x86_64" ]] && [[ $(uname -s) == "Linux" ]]; then
     RELEASE_ZIP_NAME="tflint_linux_amd64.zip"
+else
+    echo -e "Architecture: $(uname -m)"
+    echo -e "Operating system: $(uname -s)"
+    echo -e '\nUnsupported architecture/OS. Exiting.'
+    exit 255
 fi
 RELEASE_ZIP_PATH="${TFLINT_DIR}/${RELEASE_ZIP_NAME}"
 if [ ! "${SKIP_CHECK}" == "1" ] && [ ! "${FORCE_INSTALL}" == "1" ]; then
