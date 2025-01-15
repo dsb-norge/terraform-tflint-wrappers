@@ -17,7 +17,7 @@ curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/ma
 
 # With arguments
 curl -s https://raw.githubusercontent.com/dsb-norge/terraform-tflint-wrappers/main/tflint_linux.sh |
-  bash -s -- --uninstall
+  bash -s -- --help
 ```
 
 ### Powershell from remote repo
