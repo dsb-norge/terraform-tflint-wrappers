@@ -1,5 +1,13 @@
 {
   "cSpell.words": [
     "tflint"
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "commandCenter.border": "#15202b99",
+    "titleBar.activeBackground": "#f3db47",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#f3db4799",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.remoteColor": "#f3db47"
 }
