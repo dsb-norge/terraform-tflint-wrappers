@@ -5,7 +5,6 @@ config {
   call_module_type = "all"
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # plugin: TFLint Ruleset for Terraform Language - https://github.com/terraform-linters/tflint-ruleset-terraform
 # built-in plugin
@@ -25,7 +24,7 @@ rule "terraform_required_version" { enabled = false }   # Disallow terraform dec
 # plugin: TFLint Ruleset for terraform-provider-azurerm - https://github.com/terraform-linters/tflint-ruleset-azurerm/tree/master
 plugin "azurerm" {
   enabled = true
-  version = "0.27.0"
+  version = "0.28.0"
   source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
 }
 
@@ -37,7 +36,7 @@ plugin "azurerm" {
 # plugin: TFLint Ruleset for terraform-provider-basic-ext - https://github.com/Azure/tflint-ruleset-basic-ext/tree/master
 plugin "basic-ext" {
   enabled     = true
-  version     = "0.7.1"
+  version     = "0.7.2"
   source      = "github.com/Azure/tflint-ruleset-basic-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -108,7 +107,7 @@ rule "terraform_locals_order" { enabled = false }            # We use logical or
 # plugin: TFLint Ruleset for terraform-provider-azurerm-ext - https://github.com/Azure/tflint-ruleset-azurerm-ext/tree/master
 plugin "azurerm-ext" {
   enabled     = true
-  version     = "0.6.0"
+  version     = "0.6.1"
   source      = "github.com/Azure/tflint-ruleset-azurerm-ext"
   signing_key = <<-KEY
     -----BEGIN PGP PUBLIC KEY BLOCK-----
