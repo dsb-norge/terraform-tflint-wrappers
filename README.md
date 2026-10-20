@@ -1,5 +1,13 @@
 # terraform-tflint-wrappers
 
+> **Retired.** TFLint is installed and run by the dsb CLI,
+> [`dsb-norge/terraform-helpers`](https://github.com/dsb-norge/terraform-helpers): `tf-lint` and
+> `tf-lint-all` lint a project's environments and its state directory, and a module repository's
+> root and examples, the same way CI does
+> ([the lint contract](https://github.com/dsb-norge/github-actions-terraform/blob/main/docs/Linting.md)).
+> The CLI also writes the default `.tflint.hcl` into a directory that has none. This repository is
+> archived; the scripts below stay readable at their raw URLs but are no longer maintained.
+
 Repo for DSBs TFLint wrapper scripts, ref. <https://github.com/terraform-linters/tflint>
 
 The intention of the scripts in this repo is to provide a compatible and safe way of installing and running TFLint without having to duplicate code in DSBs terraform project repos.
